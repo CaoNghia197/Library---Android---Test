@@ -3,7 +3,8 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'maven-publish'
 }
-
+group = 'com.example.library'
+version = '1.0'
 android {
     compileSdk 32
 
@@ -45,10 +46,9 @@ afterEvaluate {
         publications {
             release(MavenPublication) {
                 from components.release
-
-                groupId = 'com.example.library'
-                artifactId = 'color'
-                version = '1.0'
+                groupId = 'com.nghia.library'
+                artifactId = 'android-color'
+                version = '2.0.0'
             }
         }
     }
