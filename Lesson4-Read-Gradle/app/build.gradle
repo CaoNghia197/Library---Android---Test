@@ -1,0 +1,94 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    compileSdkVersion rootProject.ext.android.compile_sdk
+    buildToolsVersion rootProject.ext.android.build_tools
+
+    defaultConfig {
+        applicationId rootProject.ext.android.application_id
+        minSdkVersion rootProject.ext.android.min_sdk
+        targetSdkVersion rootProject.ext.android.target_sdk
+        versionCode rootProject.ext.android.version_code
+        versionName rootProject.ext.android.version_name
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
+    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'com.google.android.material:material:1.7.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation project(path: ':gradlesrc-tasks')
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    implementation 'com.github.CaoNghia197:Library-Android-Test:2.0.0'
+//    implementation 'org.gradle:api:1.0'
+}
+import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.stream.Collectors
+import java.util.stream.Stream
+
+task(deploy) {
+    doLast {
+//        println 'compile_sdk : '+ rootProject.ext.android.compile_sdk
+//        println 'build_tools : '+ rootProject.ext.android.build_tools
+//        println 'application_id : '+ rootProject.ext.android.application_id
+//        println 'min_sdk : '+ rootProject.ext.android.min_sdk
+//        println 'target_sdk : '+ rootProject.ext.android.target_sdk
+//        println 'version_name : '+ rootProject.ext.android.version_name
+//        File file = new File("config.gradle")
+        Map<String,String> variableMap = fillMap()
+        Stream<String> lines;
+        def propertiesFilePath = 'vgpsdk/config.gradle'
+        File propertiesFile = new File(propertiesFilePath)
+        Path path = Paths.get(propertiesFile.getPath())
+        try {
+            lines = Files.lines(path,Charset.forName("UTF-8"));
+            List<String> replacedLines = lines.map(line -> replaceTag(line,variableMap))
+                    .collect(Collectors.toList());
+            Files.write(path, replacedLines, Charset.forName("UTF-8"));
+            lines.close();
+            System.out.println("Find and replace done");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+private Map<String,String> fillMap() {
+    Map<String,String> map = new HashMap<String,String>();
+    map.put(rootProject.ext.android.sdkVersion, "3.0");
+    return map;
+}
+private static String replaceTag(String str, Map<String,String> map) {
+    for (Map.Entry<String, String> entry : map.entrySet()) {
+        if (str.contains(entry.getKey())) {
+            str = str.replace(entry.getKey(), entry.getValue());
+        }
+    }
+    return str;
+}
